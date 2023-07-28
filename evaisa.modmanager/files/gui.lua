@@ -2,6 +2,9 @@ gui = gui or GuiCreate();
 
 timesDragged = timesDragged or 0
 
+active_preset = active_preset or nil
+last_preset = last_preset or nil
+
 local current_id = 200
 local function new_id()
     current_id = current_id + 1
@@ -24,8 +27,8 @@ end
 PresetName = PresetName or "Unknown"
 
 
-if(ModSettingGet("ModMan.Preset") ~= nil)then
-    local preset = json.parse(ModSettingGet("ModMan.Preset"))
+if(active_preset ~= nil)then
+    local preset = active_preset
     PresetName = preset.name
     local data = preset.data
     local newWidgets = {}
@@ -57,7 +60,9 @@ if(ModSettingGet("ModMan.Preset") ~= nil)then
         end
     end
     widgets = newWidgets
-    ModSettingRemove("ModMan.Preset")
+
+    active_preset = nil
+    --ModSettingRemove("ModMan.Preset")
 end
 
 if(menuOpen)then
@@ -318,7 +323,7 @@ if(menuOpen)then
     last_scroll_offset = scroll_offset_y
     GuiZSetForNextWidget(gui, -1930)
     GuiZSet(gui, -1940)
-    GuiBeginScrollContainer(gui, 6, containerPos.x - 29, containerPos.y, 20, (containerSize.h + 9 + (containerSize.h - 50)) - 49)
+    GuiBeginScrollContainer(gui, 6, containerPos.x - 29, containerPos.y, 20, (containerSize.h + 9 + (containerSize.h - 50)) - 129)
     GuiLayoutBeginVertical(gui, 0, 0, true)
 
 
@@ -334,6 +339,9 @@ if(menuOpen)then
     GuiEndScrollContainer(gui)
     if(apply)then
         api.SaveModData(widgets)
+        if(last_preset ~= nil and last_preset.settings ~= nil)then
+            api.ApplySettings(last_preset.settings)
+        end
     end
     if(reload)then
         RefreshMods()
@@ -350,24 +358,69 @@ if(menuOpen)then
     end
 
     GuiZSetForNextWidget(gui, -1930)
-    GuiBeginScrollContainer(gui, 7, containerPos.x - 29, (containerSize.h + 19 + (containerSize.h - 50)) - 20, 20, 40)
+    GuiBeginScrollContainer(gui, 7, containerPos.x - 29, (containerSize.h - 9 + (containerSize.h - 50)) - 72, 20, 120)
     GuiLayoutBeginVertical(gui, 0, 0, true)
     local save = GuiImageButton(gui, new_id(), 0, 0, "", "mods/evaisa.modmanager/files/save.png")
     GuiTooltip(gui, "Save preset. (Name can not be empty)", "")
+    local save_with_settings = GuiImageButton(gui, new_id(), 0, 0, "", "mods/evaisa.modmanager/files/savesettings.png")
+    GuiTooltip(gui, "Save preset with mod settings. (Name can not be empty)", "")
+    local codesave = GuiImageButton(gui, new_id(), 0, 0, "", "mods/evaisa.modmanager/files/copy.png")
+    GuiTooltip(gui, "Copy preset code (Name can not be empty)", "Note: preset codes cannot encode mod settings, share your preset file for that.")
+    --[[local codesave_with_settings = GuiImageButton(gui, new_id(), 0, 0, "", "mods/evaisa.modmanager/files/copysettings.png")
+    GuiTooltip(gui, "Copy preset code with mod settings (Name can not be empty)", "")]]
+    local paste = GuiImageButton(gui, new_id(), 0, 0, "", "mods/evaisa.modmanager/files/paste.png")
+    GuiTooltip(gui, "Load preset from clipboard.", "")
     local reload = GuiImageButton(gui, new_id(), 0, 0, "", "mods/evaisa.modmanager/files/reloadpresets.png")
     GuiTooltip(gui, "Refresh stored presets.", "")
+    local open_folder = GuiImageButton(gui, new_id(), 0, 0, "", "mods/evaisa.modmanager/files/folder.png")
+    GuiTooltip(gui, "Open presets folder.", "")
     GuiLayoutEnd(gui)
     GuiEndScrollContainer(gui)
+
+    local force_refresh = false
 
     if(save)then
         local name = PresetName
         if(name ~= "")then
             api.SavePreset(name, widgets)
+            force_refresh = true
         end
+    end
+
+    if(save_with_settings)then
+        local name = PresetName
+        if(name ~= "")then
+            api.SavePresetWithSettings(name, widgets)
+            force_refresh = true
+        end
+    end
+
+    if(codesave)then
+        local name = PresetName
+        if(name ~= "")then
+            api.SaveToCode(name, widgets)
+        end
+    end
+
+    --[[
+    if(codesave_with_settings)then
+        local name = PresetName
+        if(name ~= "")then
+            api.SaveToCodeWithSettings(name, widgets)
+        end
+    end
+    ]]
+
+    if(paste)then
+        api.LoadFromClipboard(widgets)
     end
 
     if(reload)then
         RefreshPresets()
+    end
+
+    if(open_folder)then
+        api.OpenPresetsFolder()
     end
 
     GuiZSetForNextWidget(gui, -1930)
@@ -379,14 +432,19 @@ if(menuOpen)then
         GuiLayoutBeginHorizontal(gui, 0, 0, true)
         if(GuiButton(gui, new_id(), 0, 0, "[Remove]"))then
             api.RemovePreset(v)
+            force_refresh = true
         end
         if(GuiButton(gui, new_id(), 0, 0, " "..v))then
-            api.LoadPreset(v)
+            active_preset = api.LoadPreset(v)
+            last_preset = active_preset
         end
         GuiLayoutEnd(gui)
     end
     for i = 1, math.max(0, 20 - #presets) do
         GuiText(gui, 0, 0, " ")
+    end
+    if(force_refresh)then
+        RefreshPresets()
     end
     GuiLayoutEnd(gui)
     GuiEndScrollContainer(gui)

@@ -1,4 +1,14 @@
-if(ModIsEnabled("evaisa.unshackle"))then
+function OnWorldPreUpdate()
+    if(GameGetFrameNum() > 60 * 3)then
+        if(not ModIsEnabled("evaisa.unshackle"))then
+            GamePrint("[ModManager] Unshackle is not installed, please follow the instructions on the mod manager workshop page.")
+        elseif(not GameHasFlagRun( "unshackle2_loaded" ))then
+            GamePrint("[ModManager] Unshackle is outdated, please reinstall it.")
+        end
+    end
+end
+
+--[[if(ModIsEnabled("evaisa.unshackle"))then
     ModLuaFileAppend("mods/evaisa.unshackle/functions.lua", "mods/evaisa.modmanager/files/registerfunctions.lua")
 end
 --EZMouse = dofile_once("mods/evaisa.modmanager/lib/EZMouse/EZMouse.lua")("mods/evaisa.modmanager/lib/EZMouse/")
@@ -46,6 +56,7 @@ end
 
 
 function OnMagicNumbersAndWorldSeedInitialized() 
+    ModSettingSet("unshackle_imgui.imgui_build_type", "debug")
     if(ModIsEnabled("evaisa.unshackle"))then
         RefreshMods()
         RefreshPresets()
@@ -81,8 +92,14 @@ function OnPausePreUpdate()
         end
         
 
-        dofile("mods/evaisa.modmanager/files/gui.lua")
+        dofile("mods/evaisa.modmanager/files/gui2.lua")
     else
+        dofile("mods/evaisa.modmanager/files/shackledgui.lua")
+    end
+end]]
+
+function OnPausePreUpdate()
+    if(not ModIsEnabled("evaisa.unshackle"))then
         dofile("mods/evaisa.modmanager/files/shackledgui.lua")
     end
 end

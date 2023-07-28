@@ -1,20 +1,9 @@
---[[
-RegisterFunction("ReadFileData", function(filePath, storageName)
-    local file,err = io.open(filePath,'rb')
-    if file then
-        local content = file:read("*all")
-        ModSettingSet(storageName, content)
-        print(content)
-        file:close()
-    else
-        print("error:", err) -- not so hard?
-    end
-end)
-]]
+local json = dofile("mods/evaisa.modmanager/lib/json.lua")
+local nxml = dofile("mods/evaisa.modmanager/lib/nxml.lua")
 
-RegisterFunction("GetModData", function()
-    local json = dofile("mods/evaisa.modmanager/lib/json.lua")
-    local nxml = dofile("mods/evaisa.modmanager/lib/nxml.lua")
+local api = {}
+
+api.GetModData = function()
     local save_folder = os.getenv('APPDATA'):gsub("\\Roaming", "").."\\LocalLow\\Nolla_Games_Noita\\save00\\mod_config.xml"
 
     local file,err = io.open(save_folder,'rb')
@@ -44,14 +33,15 @@ RegisterFunction("GetModData", function()
             end
         end
 
-        ModSettingSet("ModMan.ModData", json.stringify(data))
+        --ModSettingSet("ModMan.ModData", json.stringify(data))
 
         file:close()
+
+        return data
     end
+end
 
-end)
-
-RegisterFunction("SaveModData", function(data)
+api.SaveModData = function(data)
     local json = dofile("mods/evaisa.modmanager/lib/json.lua")
     local nxml = dofile("mods/evaisa.modmanager/lib/nxml.lua")
     local pretty = dofile("mods/evaisa.modmanager/lib/pretty.lua")
@@ -70,12 +60,13 @@ RegisterFunction("SaveModData", function(data)
         file:write(content)
         file:close()
     end
-end)
+end
 
-RegisterFunction("SavePreset", function(name, data)
+api.SavePreset = function(name, data, settings)
     local preset = {
         name = name,
         data = {},
+        settings = settings,
     }
     for i = #data, 1, -1 do
         local v = data[i]
@@ -106,10 +97,35 @@ RegisterFunction("SavePreset", function(name, data)
         end
     end
 
-    ModSettingSet("ModMan.Presets", json.stringify(presetInfo))
-end)
+    --ModSettingSet("ModMan.Presets", json.stringify(presetInfo))
 
-RegisterFunction("SaveToCode", function(name, data)
+end
+
+api.SavePresetWithSettings = function(preset_name, data)
+    local settingCount = ModSettingGetCount()
+    local settings = {}
+    for i = 1, settingCount do
+        local name, value, value_next = ModSettingGetAtIndex(i)
+        table.insert(settings, {key = name, value = value, value_next = value_next})
+    end
+    api.SavePreset(preset_name, data, settings)
+end
+
+api.ApplySettings = function(settings)
+    local json = dofile("mods/evaisa.modmanager/lib/json.lua")
+    print(json.stringify(settings))
+    for k, v in ipairs(settings)do
+        if(v.key ~= nil)then
+           -- print(tostring(v.key), tostring(v.value), tostring(v.value_next))
+            ModSettingSet(v.key, v.value)
+            if(v.value_next)then
+                ModSettingSetNextValue(v.key, v.value_next, false) 
+            end
+        end
+    end
+end
+
+api.SaveToCode = function(name, data, settings)
     local json = dofile("mods/evaisa.modmanager/lib/json.lua")
     local base = dofile("mods/evaisa.modmanager/lib/base.lua")
     local libdeflate = dofile("mods/evaisa.modmanager/lib/libdeflate.lua")
@@ -117,6 +133,7 @@ RegisterFunction("SaveToCode", function(name, data)
     local preset = {
         name = name,
         data = {},
+        settings = settings,
     }
     for i = #data, 1, -1 do
         local v = data[i]
@@ -140,9 +157,19 @@ RegisterFunction("SaveToCode", function(name, data)
     local encoded = base.to_z85(libdeflate:CompressDeflate(presetJson))
 
     clipboard.set(preset.name.."|"..encoded)
-end)
+end
 
-RegisterFunction("LoadFromClipboard", function(data)
+api.SaveToCodeWithSettings = function(name, data)
+    local settingCount = ModSettingGetCount()
+    local settings = {}
+    for i = 1, settingCount do
+        local name, value, value_next = ModSettingGetAtIndex(i)
+        table.insert(settings, {key = name, value = value, value_next = value_next})
+    end
+    api.SaveToCode(name, data, settings)
+end
+
+api.LoadFromClipboard = function(data)
     local json = dofile("mods/evaisa.modmanager/lib/json.lua")
     local base = dofile("mods/evaisa.modmanager/lib/base.lua")
     local libdeflate = dofile("mods/evaisa.modmanager/lib/libdeflate.lua")
@@ -158,7 +185,7 @@ RegisterFunction("LoadFromClipboard", function(data)
         table.insert(split, str)
     end
     
-    local preset = {name = name, data = {}}
+    local preset = {name = name, data = {}, settings = {}}
 
     for k, v in ipairs(split)do
         for i = #data, 1, -1 do
@@ -169,17 +196,17 @@ RegisterFunction("LoadFromClipboard", function(data)
         end
     end
 
-    ModSettingSet("ModMan.Preset", json.stringify(preset))
-end)
+    return preset
+end
 
-RegisterFunction("OpenSteamWorkshopPage", function(mod_id)
+api.OpenSteamWorkshopPage = function(mod_id)
     os.execute("start steam://openurl/https://steamcommunity.com/sharedfiles/filedetails/?id="..mod_id)
-end)
+end
 
-RegisterFunction("RefreshPresets", function()
-    local json = dofile("mods/evaisa.modmanager/lib/json.lua")
+api.RefreshPresets = function()
     local presetFolder = "presets"
     lfs.mkdir(presetFolder)
+    --os.execute("mkdir -p " .. presetFolder)
     local presetInfo = {}
     for file in lfs.dir(presetFolder) do
         if file ~= "." and file ~= ".." then
@@ -194,10 +221,12 @@ RegisterFunction("RefreshPresets", function()
             end
         end
     end
-    ModSettingSet("ModMan.Presets", json.stringify(presetInfo))
-end)
 
-RegisterFunction("LoadPreset", function(name)
+    return presetInfo
+    --ModSettingSet("ModMan.Presets", json.stringify(presetInfo))
+end
+
+api.LoadPreset = function(name)
     local presetFolder = "presets"
     local presetFile = presetFolder.."/"..name..".json"
     local json = dofile("mods/evaisa.modmanager/lib/json.lua")
@@ -206,11 +235,20 @@ RegisterFunction("LoadPreset", function(name)
         local content = file:read("*all")
         local preset = json.parse(content)
         file:close()
-        ModSettingSet("ModMan.Preset", json.stringify(preset))
+        --ModSettingSet("ModMan.Preset", json.stringify(preset))
+        return preset
     end
-end)
+end
 
-RegisterFunction("RemovePreset", function(name)
+api.OpenPresetsFolder = function()
+    local preset_folder_name = lfs.currentdir().."\\presets"
+
+    print(preset_folder_name)
+
+    os.execute("start explorer \"" .. preset_folder_name .. "\"")
+end
+
+api.RemovePreset = function(name)
     local json = dofile("mods/evaisa.modmanager/lib/json.lua")
     local presetFolder = "presets"
     local presetFile = presetFolder.."/"..name..".json"
@@ -229,5 +267,6 @@ RegisterFunction("RemovePreset", function(name)
             end
         end
     end
-    ModSettingSet("ModMan.Presets", json.stringify(presetInfo))
-end)
+end
+
+return api
