@@ -2,6 +2,9 @@ gui = gui or GuiCreate();
 
 GuiStartFrame(gui)
 GuiOptionsAdd(gui, 6)
+if (GameGetIsGamepadConnected()) then
+    GuiOptionsAdd(gui, 2)
+end
 if(allowOpen)then
     if(GuiImageButton(gui, 2, 1, 1, "", "mods/evaisa.modmanager/files/mods.png"))then
         menuOpen = not menuOpen
