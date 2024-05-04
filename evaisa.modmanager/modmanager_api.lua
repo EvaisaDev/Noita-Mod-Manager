@@ -4,7 +4,12 @@ local nxml = dofile("mods/evaisa.modmanager/lib/nxml.lua")
 local api = {}
 
 api.GetModData = function()
-    local save_folder = os.getenv('APPDATA'):gsub("\\Roaming", "").."\\LocalLow\\Nolla_Games_Noita\\save00\\mod_config.xml"
+    local save_folder
+    if not DebugGetIsDevBuild() then
+        save_folder = os.getenv('APPDATA'):gsub("\\Roaming", "").."\\LocalLow\\Nolla_Games_Noita\\save00\\mod_config.xml"
+    else
+        save_folder = "save00/mod_config.xml"
+    end
 
     local file,err = io.open(save_folder,'rb')
     if file then
@@ -46,7 +51,12 @@ api.SaveModData = function(data)
     local nxml = dofile("mods/evaisa.modmanager/lib/nxml.lua")
     local pretty = dofile("mods/evaisa.modmanager/lib/pretty.lua")
 
-    local save_folder = os.getenv('APPDATA'):gsub("\\Roaming", "").."\\LocalLow\\Nolla_Games_Noita\\save00\\mod_config.xml"
+    local save_folder
+    if not DebugGetIsDevBuild() then
+        save_folder = os.getenv('APPDATA'):gsub("\\Roaming", "").."\\LocalLow\\Nolla_Games_Noita\\save00\\mod_config.xml"
+    else
+        save_folder = "save00/mod_config.xml"
+    end
 
     local file,err = io.open(save_folder,'w')
     if file then
