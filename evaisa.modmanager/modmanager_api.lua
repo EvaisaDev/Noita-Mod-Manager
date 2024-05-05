@@ -4,12 +4,7 @@ local nxml = dofile("mods/evaisa.modmanager/lib/nxml.lua")
 local api = {}
 
 api.GetModData = function()
-    local save_folder
-    if not DebugGetIsDevBuild() then
-        save_folder = os.getenv('APPDATA'):gsub("\\Roaming", "").."\\LocalLow\\Nolla_Games_Noita\\save00\\mod_config.xml"
-    else
-        save_folder = "save00/mod_config.xml"
-    end
+    local save_folder = os.getenv('APPDATA'):gsub("\\Roaming", "").."\\LocalLow\\Nolla_Games_Noita\\save00\\mod_config.xml"
 
     local file,err = io.open(save_folder,'rb')
     if file then
@@ -32,7 +27,7 @@ api.GetModData = function()
                 if file2 then
                     local content2 = file2:read("*all")
                     local parsedModInfo = nxml.parse(content2)
-                    table.insert(data, {workshop_item_id = steamID, id = modID, name = parsedModInfo.attr.name, description = parsedModInfo.attr.description or "", settings_fold_open = (elem.attr.settings_fold_open == "1" and true or false), enabled = (elem.attr.enabled == "1" and true or false)})
+                    table.insert(data, {workshop_item_id = steamID, id = modID, name = parsedModInfo.attr.name, description = parsedModInfo.attr.description, settings_fold_open = (elem.attr.settings_fold_open == "1" and true or false), enabled = (elem.attr.enabled == "1" and true or false)})
                 
                 end
             end
@@ -51,12 +46,7 @@ api.SaveModData = function(data)
     local nxml = dofile("mods/evaisa.modmanager/lib/nxml.lua")
     local pretty = dofile("mods/evaisa.modmanager/lib/pretty.lua")
 
-    local save_folder
-    if not DebugGetIsDevBuild() then
-        save_folder = os.getenv('APPDATA'):gsub("\\Roaming", "").."\\LocalLow\\Nolla_Games_Noita\\save00\\mod_config.xml"
-    else
-        save_folder = "save00/mod_config.xml"
-    end
+    local save_folder = os.getenv('APPDATA'):gsub("\\Roaming", "").."\\LocalLow\\Nolla_Games_Noita\\save00\\mod_config.xml"
 
     local file,err = io.open(save_folder,'w')
     if file then

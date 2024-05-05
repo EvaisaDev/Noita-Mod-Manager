@@ -1,13 +1,9 @@
-local translations = ModTextFileGetContent("mods/evaisa.modmanager/translations.csv")
-local main = "data/translations/common.csv"
-ModTextFileSetContent(main, ModTextFileGetContent(main) .. translations:gsub("^[^\n]*\n", "\n", 1))
-
 function OnWorldPreUpdate()
     if(GameGetFrameNum() > 60 * 3)then
         if(not ModIsEnabled("evaisa.unshackle"))then
-            GamePrint("[ModManager]"..GameTextGetTranslatedOrNot("$modmanager_no_unshackle"))
+            GamePrint("[ModManager] Unshackle is not installed, please follow the instructions on the mod manager workshop page.")
         elseif(not GameHasFlagRun( "unshackle2_loaded" ))then
-            GamePrint("[ModManager]"..GameTextGetTranslatedOrNot("$modmanager_outdated_unshackle"))
+            GamePrint("[ModManager] Unshackle is outdated, please reinstall it.")
         end
     end
 end
