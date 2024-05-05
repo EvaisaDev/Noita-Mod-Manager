@@ -1,6 +1,6 @@
 local translations = ModTextFileGetContent("mods/evaisa.modmanager/translations.csv")
 local main = "data/translations/common.csv"
-ModTextFileSetContent(main, ModTextFileGetContent(main) .. translations:gsub("^[^\n]*\n", "\n", 1))
+ModTextFileSetContent(main, ModTextFileGetContent(main) .. translations:gsub("^[^\n]*\n", "", 1))
 
 function OnWorldPreUpdate()
     if(GameGetFrameNum() > 60 * 3)then
