@@ -27,7 +27,7 @@ if(allowOpen)then
     end
 end
 
-PresetName = PresetName or "Unknown"
+PresetName = PresetName or GameTextGetTranslatedOrNot("$modmanager_default_preset_name")
 
 
 if(active_preset ~= nil)then
@@ -76,7 +76,7 @@ if(menuOpen)then
     GuiBeginScrollContainer(gui, 3, containerPos.x, containerPos.y, containerSize.w + 8, 10)
     GuiLayoutBeginHorizontal(gui, 0, 0)
     GuiZSetForNextWidget(gui, -1960)
-    GuiText(gui, 0, 0, "Preset Name: ")
+    GuiText(gui, 0, 0, "$modmanager_preset_name_is")
     GuiZSetForNextWidget(gui, -1960)
     PresetName = GuiTextInput(gui, 4, 0, -0.5, PresetName, 100, 20)
     GuiLayoutEnd(gui)
@@ -86,7 +86,7 @@ if(menuOpen)then
     
     GuiLayoutBeginVertical(gui, 0, 0, true)
     GuiZSetForNextWidget(gui, -1931)
-    GuiText(gui, 0, 0, "--------------- Mods --------------")
+    GuiText(gui, 0, 0, "---------------"..GameTextGetTranslatedOrNot("$modmanager_mods").."--------------")
     local _, _, _, anchor_x, anchor_y = GuiGetPreviousWidgetInfo(gui)
 
     local scroll_offset_y = anchor_y - containerPos.y - 2
@@ -143,7 +143,7 @@ if(menuOpen)then
                 GuiLayoutBeginVertical(gui, 0, 0, true)
                 
                 GuiZSetForNextWidget(gui, -2102)
-                GuiText(gui, ws_x + 22, start_y + (text_height / 2), "Open Workshop Page")
+                GuiText(gui, ws_x + 22, start_y + (text_height / 2), "$modmanager_open_workshop_page")
                 GuiLayoutEnd(gui)
                 GuiZSetForNextWidget(gui, -2101)
                 GuiEndAutoBoxNinePiece(gui)
@@ -331,13 +331,13 @@ if(menuOpen)then
 
 
     local reload = GuiImageButton(gui, new_id(), 0, 0, "", "mods/evaisa.modmanager/files/reload.png")
-    GuiTooltip(gui, "Refresh mods. (Resets unsaved order)", "")
+    GuiTooltip(gui, "$modmanager_refresh_mods", "")
     local sortAZ = GuiImageButton(gui, new_id(), 0, 0, "", "mods/evaisa.modmanager/files/sortAZ.png")
-    GuiTooltip(gui, "Sort A to Z", "")
+    GuiTooltip(gui, "$modmanager_sort_a_to_z", "")
     local sortZA = GuiImageButton(gui, new_id(), 0, 0, "", "mods/evaisa.modmanager/files/sortZA.png")
-    GuiTooltip(gui, "Sort Z to A", "")
+    GuiTooltip(gui, "$modmanager_sort_z_to_a", "")
     local apply = GuiImageButton(gui, new_id(), 0, 0, "", "mods/evaisa.modmanager/files/check.png")
-    GuiTooltip(gui, "Apply mod order.", "")
+    GuiTooltip(gui, "$modmanager_apply_mod_order", "")
     GuiLayoutEnd(gui)
     GuiEndScrollContainer(gui)
     if(apply)then
@@ -364,19 +364,19 @@ if(menuOpen)then
     GuiBeginScrollContainer(gui, 7, containerPos.x - 29, (containerSize.h - 9 + (containerSize.h - 50)) - 72, 20, 120)
     GuiLayoutBeginVertical(gui, 0, 0, true)
     local save = GuiImageButton(gui, new_id(), 0, 0, "", "mods/evaisa.modmanager/files/save.png")
-    GuiTooltip(gui, "Save preset. (Name can not be empty)", "")
+    GuiTooltip(gui, "$modmanager_save_preset", "")
     local save_with_settings = GuiImageButton(gui, new_id(), 0, 0, "", "mods/evaisa.modmanager/files/savesettings.png")
-    GuiTooltip(gui, "Save preset with mod settings. (Name can not be empty)", "")
+    GuiTooltip(gui, "$modmanager_save_preset_with_mod_settings", "")
     local codesave = GuiImageButton(gui, new_id(), 0, 0, "", "mods/evaisa.modmanager/files/copy.png")
-    GuiTooltip(gui, "Copy preset code (Name can not be empty)", "Note: preset codes cannot encode mod settings, share your preset file for that.")
+    GuiTooltip(gui, "$modmanager_copy_preset_code", "$modmanager_copy_preset_code_note")
     --[[local codesave_with_settings = GuiImageButton(gui, new_id(), 0, 0, "", "mods/evaisa.modmanager/files/copysettings.png")
-    GuiTooltip(gui, "Copy preset code with mod settings (Name can not be empty)", "")]]
+    GuiTooltip(gui, "$modmanager_copy_preset_code_with_mod_settings", "")]]
     local paste = GuiImageButton(gui, new_id(), 0, 0, "", "mods/evaisa.modmanager/files/paste.png")
-    GuiTooltip(gui, "Load preset from clipboard.", "")
+    GuiTooltip(gui, "$modmanager_load_preset_code", "")
     local reload = GuiImageButton(gui, new_id(), 0, 0, "", "mods/evaisa.modmanager/files/reloadpresets.png")
-    GuiTooltip(gui, "Refresh stored presets.", "")
+    GuiTooltip(gui, "$modmanager_refresh_presets", "")
     local open_folder = GuiImageButton(gui, new_id(), 0, 0, "", "mods/evaisa.modmanager/files/folder.png")
-    GuiTooltip(gui, "Open presets folder.", "")
+    GuiTooltip(gui, "$modmanager_open_preset_folder", "")
     GuiLayoutEnd(gui)
     GuiEndScrollContainer(gui)
 
@@ -430,10 +430,10 @@ if(menuOpen)then
     GuiBeginScrollContainer(gui, 8, containerPos.x, containerPos.y + containerSize.h + 9, containerSize.w, containerSize.h - 50)
     GuiLayoutBeginVertical(gui, 0, 0, true)
     GuiZSetForNextWidget(gui, -1931)
-    GuiText(gui, 0, 0, "-------------- Presets -------------")
+    GuiText(gui, 0, 0, "---------------"..GameTextGetTranslatedOrNot("$modmanager_presets").."--------------")
     for k, v in ipairs(presets)do
         GuiLayoutBeginHorizontal(gui, 0, 0, true)
-        if(GuiButton(gui, new_id(), 0, 0, "[Remove]"))then
+        if(GuiButton(gui, new_id(), 0, 0, "$modmanager_preset_remove"))then
             api.RemovePreset(v)
             force_refresh = true
         end
